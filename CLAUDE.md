@@ -23,5 +23,8 @@ CoreNet: a LuCI theme for OpenWrt 25.12+ (ucode templates, apk). Dark/light/auto
 - 2026-11-12: all 59 menu pages load without JS errors (EN/FA, dark/light, 390px mobile).
 
 ## Status
-- Installed on Sadeq's router as plain files (kept via sysupgrade.conf), registered, NOT default (mediaurlbase = bootstrap) until Sadeq approves.
-- Open: GitHub repo public/private + corenetbase.com page (ask), CI build of the .apk, add to /etc/thirdparty when packaged.
+- GitHub: public https://github.com/Plus98ir/luci-theme-corenet (no corenetbase.com page yet - Sadeq asked to test first). CI (.github/workflows/build.yml) builds the apk with the x86_64 25.12.6 SDK; tag v* -> release asset luci-theme-corenet-<ver>-r<rel>.apk.
+- LUCI_MINIFY_CSS:=0 - csstidy merged the two Vazirmatn @font-face rules and dropped the regular weight (all text bold).
+- v1.0.0 release tested on the router 2026-11-12 (install, render, apk del/postrm), then removed so Sadeq can install it himself. /www/luci-static/corenet/custom.js stays (not package-owned, kept in sysupgrade.conf).
+- From the router, uclient-fetch `wget` times out to github.com; `curl -L` works.
+- Next: after Sadeq approves -> add to /etc/thirdparty (packages.list + apk cache), README EN/FA + cover image + corenetbase.com page.
