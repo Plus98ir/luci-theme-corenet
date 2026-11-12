@@ -22,9 +22,11 @@ CoreNet: a LuCI theme for OpenWrt 25.12+ (ucode templates, apk). Dark/light/auto
 - Screenshots: Playwright (pip, channel=chrome) with a temp ubus session cookie `sysauth_http` (grant access-group all + ubus/uci/file *). Destroy the session after.
 - 2026-11-12: all 59 menu pages load without JS errors (EN/FA, dark/light, 390px mobile).
 
-## Features added after v1.0.0 (on main, deployed to the router as files, not released yet)
+## v1.1.0 (released 2026-11-12)
 - Upgrade all: button next to "Update lists…" (anchor `#view button[data-command="update"]`) on the Software page; confirm dialog lists packages, skips kmod-*/kernel; rpcd `upgrade_start` writes /tmp/corenet-upgrade.sh and runs it with setsid in the background (survives rpcd/uhttpd restarts), `upgrade_status` returns log + EXIT code; optional hook /etc/corenet/post-upgrade.
 - Accordion sidebar: only the active category is open; opening one closes the others (favorites keep their own state in cn-fav-open).
+
+- apk feed: CI runs `apk mkndx --sign-key` and publishes pages/apk (apk + packages.adb + corenet.pem) to gh-pages -> https://corenetbase.com/luci-theme-corenet/apk/packages.adb (Pages on, served via Cloudflare; reachable from the router with and without PassWall). Add that line to customfeeds.list to get updates in Software > Updates. A future project web page must be added to the same pages dir in the workflow (keep_files: false wipes gh-pages each release).
 
 ## Status
 - GitHub: public https://github.com/Plus98ir/luci-theme-corenet (no corenetbase.com page yet). CI (.github/workflows/build.yml) builds with the x86_64 25.12.6 SDK, signs with secret APK_SIGN_KEY (private key backup: .keys/corenet-private.pem, gitignored), verifies with corenet.pem; tag v* -> release (apk + corenet.pem).
