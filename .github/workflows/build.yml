@@ -38,22 +38,54 @@ jobs:
           ls -la ../out
           echo "APK=$(ls ../out | head -1)" >> "$GITHUB_ENV"
 
+      - name: Sign package
+        working-directory: sdk
+        env:
+          APK_SIGN_KEY: ${{ secrets.APK_SIGN_KEY }}
+        run: |
+          umask 077
+          printf '%s
+' "$APK_SIGN_KEY" > /tmp/corenet-private.pem
+          for f in ../out/*.apk; do
+            ./staging_dir/host/bin/apk adbsign --allow-untrusted --reset-signatures --sign-key /tmp/corenet-private.pem "$f"
+          done
+          rm -f /tmp/corenet-private.pem
+          mkdir -p /tmp/keys && cp ../corenet.pem /tmp/keys/
+          ./staging_dir/host/bin/apk verify --keys-dir /tmp/keys ../out/*.apk
+          cp ../corenet.pem ../out/
+
       - uses: actions/upload-artifact@v4
         with:
           name: luci-theme-corenet
-          path: out/*.apk
+          path: |
+            out/*.apk
+            out/corenet.pem
 
       - name: Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: out/*.apk
+          files: |
+            out/*.apk
+            out/corenet.pem
           body: |
             CoreNet LuCI theme for OpenWrt 25.12+ (apk, all architectures).
 
-            Install on the router:
+            **Install from LuCI**
+            1. System › Administration › Repo Public Keys: paste the key below (or upload `corenet.pem`) - one time only.
+            2. System › Software › Upload Package…: choose `${{ env.APK }}`.
+            3. System › System › Language and Style: pick **CoreNet**.
+
             ```
-            cd /tmp && wget -O corenet.apk https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/${{ env.APK }}
-            apk add --allow-untrusted /tmp/corenet.apk
+            -----BEGIN PUBLIC KEY-----
+            MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEddziHMBCZj3GlDV2RsEBaoz1O2MP
+            QrpFaEhmFk9456QWGmnq9HSk6ECbrauI9sN+2+KPvVDnyKDP75yLtu2lNA==
+            -----END PUBLIC KEY-----
             ```
-            Then pick **CoreNet** in System â€º System â€º Language and Style.
+
+            **Install from SSH**
+            ```
+            curl -sL -o /etc/apk/keys/corenet.pem https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/corenet.pem
+            curl -sL -o /tmp/corenet.apk https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/${{ env.APK }}
+            apk add /tmp/corenet.apk
+            ```
