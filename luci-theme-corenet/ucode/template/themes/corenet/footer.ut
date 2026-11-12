@@ -7,7 +7,7 @@
 {%
 	import { stat } from 'fs';
 	const custom = stat('/www/luci-static/corenet/custom.js');
-	const ver = '1.0.0';
+	const ver = '1.1.0';
 -%}
 
 		{% if (!blank_page): %}

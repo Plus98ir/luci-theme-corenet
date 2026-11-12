@@ -12,7 +12,7 @@
 	const cn = config.corenet ?? {};
 	const def_lang = match(cn.lang ?? '', /^(fa|en)$/) ? cn.lang : (match(dispatcher.lang ?? '', /^fa/) ? 'fa' : 'auto');
 	const def_theme = match(cn.theme ?? '', /^(dark|light|auto)$/) ? cn.theme : 'dark';
-	const ver = '1.0.0';
+	const ver = '1.1.0';
 
 	http.prepare_content('text/html; charset=UTF-8');
 -%}

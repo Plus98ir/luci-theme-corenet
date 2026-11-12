@@ -48,10 +48,27 @@ jobs:
           for f in ../out/*.apk; do
             ./staging_dir/host/bin/apk adbsign --allow-untrusted --reset-signatures --sign-key /tmp/corenet-private.pem "$f"
           done
+          # apk feed for GitHub Pages: https://corenetbase.com/luci-theme-corenet/apk/packages.adb
+          mkdir -p ../pages/apk
+          cp ../out/*.apk ../pages/apk/
+          ./staging_dir/host/bin/apk mkndx --allow-untrusted --sign-key /tmp/corenet-private.pem \
+            --description "CoreNet LuCI theme" --output ../pages/apk/packages.adb ../pages/apk/*.apk
           rm -f /tmp/corenet-private.pem
           mkdir -p /tmp/keys && cp ../corenet.pem /tmp/keys/
-          ./staging_dir/host/bin/apk verify --keys-dir /tmp/keys ../out/*.apk
+          ./staging_dir/host/bin/apk verify --keys-dir /tmp/keys ../out/*.apk ../pages/apk/packages.adb
           cp ../corenet.pem ../out/
+          cp ../corenet.pem ../pages/apk/
+          touch ../pages/.nojekyll
+          ls -la ../pages/apk
+
+      - name: Publish apk feed
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./pages
+          publish_branch: gh-pages
+          keep_files: false
 
       - uses: actions/upload-artifact@v4
         with:
@@ -80,6 +97,11 @@ jobs:
             MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEddziHMBCZj3GlDV2RsEBaoz1O2MP
             QrpFaEhmFk9456QWGmnq9HSk6ECbrauI9sN+2+KPvVDnyKDP75yLtu2lNA==
             -----END PUBLIC KEY-----
+            ```
+
+            **Get updates in System › Software** (optional): add this line to `/etc/apk/repositories.d/customfeeds.list`
+            ```
+            https://corenetbase.com/luci-theme-corenet/apk/packages.adb
             ```
 
             **Install from SSH**
