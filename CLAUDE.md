@@ -23,8 +23,10 @@ CoreNet: a LuCI theme for OpenWrt 25.12+ (ucode templates, apk). Dark/light/auto
 - 2026-11-12: all 59 menu pages load without JS errors (EN/FA, dark/light, 390px mobile).
 
 ## Status
-- GitHub: public https://github.com/Plus98ir/luci-theme-corenet (no corenetbase.com page yet - Sadeq asked to test first). CI (.github/workflows/build.yml) builds the apk with the x86_64 25.12.6 SDK; tag v* -> release asset luci-theme-corenet-<ver>-r<rel>.apk.
-- LUCI_MINIFY_CSS:=0 - csstidy merged the two Vazirmatn @font-face rules and dropped the regular weight (all text bold).
-- v1.0.0 release tested on the router 2026-11-12 (install, render, apk del/postrm), then removed so Sadeq can install it himself. /www/luci-static/corenet/custom.js stays (not package-owned, kept in sysupgrade.conf).
-- From the router, uclient-fetch `wget` times out to github.com; `curl -L` works.
-- Next: after Sadeq approves -> add to /etc/thirdparty (packages.list + apk cache), README EN/FA + cover image + corenetbase.com page.
+- GitHub: public https://github.com/Plus98ir/luci-theme-corenet (no corenetbase.com page yet). CI (.github/workflows/build.yml) builds with the x86_64 25.12.6 SDK, signs with secret APK_SIGN_KEY (private key backup: .keys/corenet-private.pem, gitignored), verifies with corenet.pem; tag v* -> release (apk + corenet.pem).
+- LuCI Software upload runs plain `apk add` (no --allow-untrusted) -> users add corenet.pem once in System > Administration > Repo Public Keys.
+- LUCI_MINIFY_CSS:=0 - csstidy merged the two Vazirmatn @font-face rules and dropped the regular weight.
+- Write workflow files with explicit UTF-8 (python open() default on Windows is cp1252 and broke the YAML once).
+- 2026-11-12 v1.0.0: installed on Sadeq's router through the LuCI upload flow and made default; 118 page loads (fa/dark/desktop + en/light/390px) without errors; save/changes/revert tested. Added to /etc/thirdparty.
+- Router: uclient-fetch `wget` times out to github.com; `curl -L` works.
+- Next: README EN/FA + cover image + corenetbase.com page when Sadeq says so; optional apk feed on GitHub Pages for in-panel updates.
