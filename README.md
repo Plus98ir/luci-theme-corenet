@@ -1,6 +1,12 @@
 <h1 align="center">CoreNet — LuCI theme for OpenWrt</h1>
 
-<p align="center"><a href="https://hits.sh/github.com/Plus98ir/luci-theme-corenet/"><img src="https://hits.sh/github.com/Plus98ir/luci-theme-corenet.svg?style=for-the-badge&label=views&color=f38020" alt="Views"></a> <a href="https://corenetbase.com/#support"><img src="https://img.shields.io/badge/support-buy%20me%20a%20coffee-e11d2a?style=for-the-badge&logo=buymeacoffee&logoColor=white" alt="Support"></a> <a href="https://github.com/Plus98ir/luci-theme-corenet/releases/latest"><img src="https://img.shields.io/github/v/release/Plus98ir/luci-theme-corenet?style=for-the-badge&label=release&color=8b7cf6" alt="Latest release"></a> <img src="https://img.shields.io/badge/OpenWrt-25.12%2B%20(apk)-00b5e2?style=for-the-badge" alt="OpenWrt 25.12+"></p>
+<p align="center"><a href="https://hits.sh/github.com/Plus98ir/luci-theme-corenet/"><img src="https://hits.sh/github.com/Plus98ir/luci-theme-corenet.svg?style=for-the-badge&label=views&color=f38020" alt="Views"></a> <a href="https://corenetbase.com/#support"><img src="https://img.shields.io/badge/support-buy%20me%20a%20coffee-e11d2a?style=for-the-badge&logo=buymeacoffee&logoColor=white" alt="Support"></a> <a href="https://github.com/Plus98ir/luci-theme-corenet/releases/latest"><img src="https://img.shields.io/github/v/release/Plus98ir/luci-theme-corenet?style=for-the-badge&label=release&color=8b7cf6" alt="Latest release"></a> <a href="https://openwrt.org/"><img src="https://img.shields.io/badge/OpenWrt-25.12%2B%20(apk)-00b5e2?style=for-the-badge" alt="OpenWrt 25.12+"></a></p>
+
+<div align="center">
+
+[<img src="https://flagcdn.com/w40/us.png" width="20" alt=""> &nbsp;**English**](README.md) &nbsp;&nbsp;|&nbsp;&nbsp; [<img src="https://flagcdn.com/w40/ir.png" width="20" alt=""> &nbsp;**فارسی**](README.fa.md)
+
+</div>
 
 <details>
 <summary><b>☕ Support · حمایت</b> — USDT (TRC20) / TRX</summary>
@@ -18,12 +24,6 @@ TA53aFyGNfSAcrCaJi9QmA9x5W47nPJcf7
 </details>
 
 ![CoreNet](luci-theme-corenet.png)
-
-<div align="center">
-
-[<img src="https://flagcdn.com/w40/us.png" width="20" alt=""> &nbsp;**English**](README.md) &nbsp;&nbsp;|&nbsp;&nbsp; [<img src="https://flagcdn.com/w40/ir.png" width="20" alt=""> &nbsp;**فارسی**](README.fa.md)
-
-</div>
 
 **CoreNet is a modern, bilingual (English / Persian) theme for the OpenWrt web interface (LuCI).** It replaces the top menu with a grouped sidebar, adds a live dashboard, a menu search, a help card on every page and an **Upgrade all** button — and it is only ~150 KB.
 
