@@ -36,6 +36,7 @@ jobs:
           mkdir -p ../out
           find bin -name 'luci-theme-corenet*.apk' -exec cp {} ../out/ \;
           ls -la ../out
+          echo "APK=$(ls ../out | head -1)" >> "$GITHUB_ENV"
 
       - uses: actions/upload-artifact@v4
         with:
@@ -52,7 +53,7 @@ jobs:
 
             Install on the router:
             ```
-            cd /tmp && wget -O corenet.apk https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/$(ls out | head -1)
+            cd /tmp && wget -O corenet.apk https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/${{ env.APK }}
             apk add --allow-untrusted /tmp/corenet.apk
             ```
             Then pick **CoreNet** in System › System › Language and Style.
