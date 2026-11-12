@@ -35,4 +35,6 @@ CoreNet: a LuCI theme for OpenWrt 25.12+ (ucode templates, apk). Dark/light/auto
 - Write workflow files with explicit UTF-8 (python open() default on Windows is cp1252 and broke the YAML once).
 - 2026-11-12 v1.0.0: installed on Sadeq's router through the LuCI upload flow and made default; 118 page loads (fa/dark/desktop + en/light/390px) without errors; save/changes/revert tested. Added to /etc/thirdparty.
 - Router: uclient-fetch `wget` times out to github.com; `curl -L` works.
-- Next: README EN/FA + cover image + corenetbase.com page when Sadeq says so; optional apk feed on GitHub Pages for in-panel updates.
+- README EN/FA + docs/img screenshots (masked: IP 203.0.113.24, SSIDs CoreNet*, custom.js blocked) + cover luci-theme-corenet.png + LICENSE done 2026-11-12. Screenshot script pattern: scratchpad readme_shots.py (Playwright + temp ubus session).
+- Sadeq: NO page on the main corenetbase.com site / descriptions.json for now - GitHub README only. Ask before adding.
+- Next ideas: none pending; continue from Sadeq's feedback.
