@@ -1,0 +1,46 @@
+{#
+ CoreNet theme for LuCI
+ Copyright 2026 PluS98 - https://corenetbase.com
+ Licensed to the public under the Apache License 2.0.
+-#}
+
+{%
+	import { stat } from 'fs';
+	const custom = stat('/www/luci-static/corenet/custom.js');
+	const ver = '1.0.0';
+-%}
+
+		{% if (!blank_page): %}
+				</div>
+				<footer id="cn-foot">
+					<span>
+						<a href="https://github.com/openwrt/luci" target="_blank" rel="noreferrer">{{ version.luciname }} ({{ version.luciversion }})</a>
+						·
+						<a href="{{ entityencode(version.disturl ?? '#', true) }}" target="_blank" rel="noreferrer">{{ version.distname }} {{ version.distversion }} ({{ version.distrevision }})</a>
+						{% if (lua_active): %}
+							· {{ _('Lua compatibility mode active') }}
+						{% endif %}
+					</span>
+					<span class="cn-foot-brand">CoreNet theme · <a href="https://corenetbase.com" target="_blank" rel="noreferrer">corenetbase.com</a></span>
+					<ul class="breadcrumb" id="modemenu" style="display:none"></ul>
+				</footer>
+			</div>
+		</div>
+		<div id="cn-palette" hidden>
+			<div class="cn-pal-box" role="dialog" aria-modal="true">
+				<div class="cn-pal-in">
+					<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+					<input type="text" id="cn-pal-q" autocomplete="off" spellcheck="false">
+					<kbd>Esc</kbd>
+				</div>
+				<ul id="cn-pal-list"></ul>
+			</div>
+		</div>
+		<script src="{{ media }}/help.js?v={{ ver }}"></script>
+		{% if (custom): %}
+		<script src="{{ media }}/custom.js?v={{ custom.mtime }}"></script>
+		{% endif %}
+		<script>L.require('menu-corenet')</script>
+		{% endif %}
+	</body>
+</html>

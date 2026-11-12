@@ -1,0 +1,79 @@
+#!/usr/bin/ucode
+
+// CoreNet theme - rpcd helper: list of upgradable packages for the dashboard.
+// Copyright 2026 PluS98 - https://corenetbase.com - Apache-2.0
+
+'use strict';
+
+import { popen, stat, readfile, writefile, access } from 'fs';
+
+const CACHE = '/tmp/corenet-upgrades.json';
+const MAX_AGE = 1800;
+
+function split_name(full) {
+	// name-1.2.3-r4  /  name-26.312.33065~abc  ->  [ name, version ]
+	const p = split(full, '-');
+	let n = length(p);
+	if (n < 2)
+		return [ full, '' ];
+	let vlen = match(p[n - 1], /^r[0-9]+$/) ? 2 : 1;
+	if (n <= vlen)
+		return [ full, '' ];
+	return [ join('-', slice(p, 0, n - vlen)), join('-', slice(p, n - vlen)) ];
+}
+
+function scan() {
+	const pkgs = [];
+	let fd;
+
+	if (access('/usr/bin/apk', 'x'))
+		fd = popen('apk list --upgradable 2>/dev/null');
+	else if (access('/bin/opkg', 'x'))
+		fd = popen('opkg list-upgradable 2>/dev/null');
+	else
+		return pkgs;
+
+	if (!fd)
+		return pkgs;
+
+	for (let line = fd.read('line'); length(line); line = fd.read('line')) {
+		line = trim(line);
+		if (!length(line))
+			continue;
+
+		let m = match(line, /^([^ ]+) .*\[upgradable from: ([^\]]+)\]/);
+		if (m) {
+			const nw = split_name(m[1]), od = split_name(m[2]);
+			push(pkgs, { name: nw[0], old: od[1], new: nw[1] });
+			continue;
+		}
+
+		m = match(line, /^([^ ]+) - ([^ ]+) - ([^ ]+)$/);
+		if (m)
+			push(pkgs, { name: m[1], old: m[2], new: m[3] });
+	}
+
+	fd.close();
+	return pkgs;
+}
+
+const methods = {
+	upgrades: {
+		args: { force: false },
+		call: function(req) {
+			const st = stat(CACHE);
+			if (!req.args.force && st && time() - st.mtime < MAX_AGE) {
+				const cached = json(readfile(CACHE) ?? 'null');
+				if (cached)
+					return cached;
+			}
+
+			const pkgs = scan();
+			const res = { count: length(pkgs), packages: pkgs, time: time() };
+			writefile(CACHE, sprintf('%J', res));
+			return res;
+		}
+	}
+};
+
+return { 'luci.corenet': methods };

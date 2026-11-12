@@ -1,0 +1,59 @@
+{#
+ CoreNet theme for LuCI - login page
+ Copyright 2026 PluS98 - https://corenetbase.com
+ Licensed to the public under the Apache License 2.0.
+-#}
+
+{% include('header', { blank_page: true }) %}
+{% const board = ubus.call('system', 'board') ?? {}; %}
+
+<div id="cn-login">
+	<div class="cn-login-glow"></div>
+	<form method="post" class="cn-login-card" id="cn-login-form">
+		<img class="cn-login-logo" src="{{ media }}/logo.svg" alt="" width="64" height="64">
+		<h1>{{ striptags(board.hostname ?? 'OpenWrt') }}</h1>
+		<p class="cn-login-sub">{{ striptags(board.model ?? '') }}{{ board.release?.version ? ` · OpenWrt ${board.release.version}` : '' }}</p>
+
+		<label class="cn-field">
+			<span><span class="cn-en">Username</span><span class="cn-fa">نام کاربری</span></span>
+			<input name="luci_username" id="luci_username" type="text" autocomplete="username" value="{{ entityencode(duser, true) }}">
+		</label>
+		<label class="cn-field">
+			<span><span class="cn-en">Password</span><span class="cn-fa">رمز عبور</span></span>
+			<input name="luci_password" id="luci_password" type="password" autocomplete="current-password">
+		</label>
+
+		{% if (fuser): %}
+		<div class="cn-login-err">
+			<span class="cn-en">Invalid username and/or password! Please try again.</span>
+			<span class="cn-fa">نام کاربری یا رمز عبور اشتباه است. دوباره تلاش کنید.</span>
+		</div>
+		{% endif %}
+
+		<button type="submit" class="cn-login-btn" id="cn-login-btn">
+			<span class="cn-en">Log in</span><span class="cn-fa">ورود</span>
+		</button>
+
+		<div class="cn-login-foot">
+			<button type="button" class="cn-chip" id="cn-login-lang">FA / EN</button>
+		</div>
+	</form>
+</div>
+
+<script>
+	(function () {
+		var f = document.getElementById('cn-login-form');
+		var b = document.getElementById('cn-login-btn');
+		var pw = document.getElementById('luci_password');
+		var u = document.getElementById('luci_username');
+		(u.value ? pw : u).focus();
+		f.addEventListener('submit', function () { b.classList.add('busy'); b.disabled = true; });
+		document.getElementById('cn-login-lang').addEventListener('click', function () {
+			var d = document.documentElement, l = d.getAttribute('data-cn-lang') === 'fa' ? 'en' : 'fa';
+			d.setAttribute('data-cn-lang', l);
+			try { localStorage.setItem('cn-lang', l); } catch (e) {}
+		});
+	})();
+</script>
+
+{% include('footer', { blank_page: true }) %}

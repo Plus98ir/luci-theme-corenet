@@ -1,0 +1,15 @@
+{
+	"luci-theme-corenet": {
+		"description": "Grant access to the CoreNet theme dashboard",
+		"read": {
+			"ubus": {
+				"luci.corenet": [ "upgrades" ],
+				"luci": [ "getInitList", "getProcessList" ],
+				"luci-rpc": [ "getDHCPLeases", "getWirelessDevices" ],
+				"network.interface": [ "dump" ],
+				"iwinfo": [ "info", "assoclist" ],
+				"system": [ "info", "board" ]
+			}
+		}
+	}
+}
