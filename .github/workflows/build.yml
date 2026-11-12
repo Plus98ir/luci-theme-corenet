@@ -44,8 +44,7 @@ jobs:
           APK_SIGN_KEY: ${{ secrets.APK_SIGN_KEY }}
         run: |
           umask 077
-          printf '%s
-' "$APK_SIGN_KEY" > /tmp/corenet-private.pem
+          printf '%s\n' "$APK_SIGN_KEY" > /tmp/corenet-private.pem
           for f in ../out/*.apk; do
             ./staging_dir/host/bin/apk adbsign --allow-untrusted --reset-signatures --sign-key /tmp/corenet-private.pem "$f"
           done
@@ -72,9 +71,9 @@ jobs:
             CoreNet LuCI theme for OpenWrt 25.12+ (apk, all architectures).
 
             **Install from LuCI**
-            1. System › Administration › Repo Public Keys: paste the key below (or upload `corenet.pem`) - one time only.
-            2. System › Software › Upload Package…: choose `${{ env.APK }}`.
-            3. System › System › Language and Style: pick **CoreNet**.
+            1. System â€º Administration â€º Repo Public Keys: paste the key below - one time only.
+            2. System â€º Software â€º Upload Packageâ€¦: choose `${{ env.APK }}`.
+            3. System â€º System â€º Language and Style: pick **CoreNet**.
 
             ```
             -----BEGIN PUBLIC KEY-----
