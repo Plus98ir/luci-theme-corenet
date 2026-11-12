@@ -9,6 +9,8 @@ include $(TOPDIR)/rules.mk
 LUCI_TITLE:=CoreNet - modern bilingual (FA/EN) theme with dashboard and menu search
 LUCI_DEPENDS:=+luci-base
 LUCI_PKGARCH:=all
+# csstidy merges the two Vazirmatn @font-face rules and drops the regular weight
+LUCI_MINIFY_CSS:=0
 
 PKG_NAME:=luci-theme-corenet
 PKG_VERSION:=1.0.0
