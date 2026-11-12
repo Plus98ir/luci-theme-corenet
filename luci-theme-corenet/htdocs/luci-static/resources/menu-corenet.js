@@ -72,6 +72,11 @@ const callAssoc = rpc.declare({ object: 'iwinfo', method: 'assoclist', params: [
 const callInitList = rpc.declare({ object: 'luci', method: 'getInitList', expect: { '': {} } });
 const callProcs = rpc.declare({ object: 'luci', method: 'getProcessList', expect: { result: [] } });
 const callUpgrades = rpc.declare({ object: 'luci.corenet', method: 'upgrades', params: [ 'force' ], expect: { '': {} } });
+const callUpgStart = rpc.declare({ object: 'luci.corenet', method: 'upgrade_start', params: [ 'packages' ], expect: { '': {} } });
+const callUpgStatus = rpc.declare({ object: 'luci.corenet', method: 'upgrade_status', expect: { '': {} } });
+
+/* kernel modules must match the running kernel - they are upgraded by a firmware sysupgrade */
+const UPG_SKIP = /^(kmod-|kernel$)/;
 
 const PROXIES = [
 	{ init: 'passwall2', name: 'PassWall 2', path: 'admin/services/passwall2', re: /passwall2\// },
@@ -176,6 +181,9 @@ return baseclass.extend({
 
 		if (L.env.dispatchpath.join('/') == 'admin/status/overview')
 			this.startDash();
+
+		if (L.env.dispatchpath.join('/') == 'admin/system/package-manager')
+			this.initUpgradeAll();
 	},
 
 	renderModeMenu(tree) {
@@ -278,22 +286,25 @@ return baseclass.extend({
 	},
 
 	navGroup(id, title, ico, items, isFav) {
-		let open = {};
-		try { open = JSON.parse(store('cn-open') || '{}') || {}; } catch (e) {}
+		let favOpen = true;
+		try { favOpen = store('cn-fav-open') !== '0'; } catch (e) {}
 
 		const active = !isFav && this.isActive(id);
-		const isOpen = isFav ? open[id] !== false : (active || open[id] === true);
+		const isOpen = isFav ? favOpen : active;
 		const sec = E('div', { 'class': 'cn-grp' + (isOpen ? ' open' : '') + (active ? ' active' : '') + (isFav ? ' fav' : '') });
 		const head = E('button', { 'type': 'button', 'class': 'cn-grp-h' });
 		head.appendChild(svg(ico));
 		head.appendChild(txt('span', 'cn-grp-t', title));
 		head.appendChild(svg('chevron', 'cn-chev'));
 		head.addEventListener('click', () => {
-			sec.classList.toggle('open');
-			let o = {};
-			try { o = JSON.parse(store('cn-open') || '{}') || {}; } catch (e) {}
-			o[id] = sec.classList.contains('open');
-			store('cn-open', JSON.stringify(o));
+			const opening = !sec.classList.contains('open');
+			if (isFav) {
+				store('cn-fav-open', opening ? null : '0');
+			}
+			else if (opening) {
+				document.querySelectorAll('#cn-nav .cn-grp.open:not(.fav)').forEach((g) => { if (g !== sec) g.classList.remove('open'); });
+			}
+			sec.classList.toggle('open', opening);
 		});
 
 		const ul = E('ul', { 'class': 'cn-grp-l' });
@@ -858,5 +869,164 @@ return baseclass.extend({
 			w.appendChild(list);
 			box.appendChild(w);
 		}
+	},
+
+	/* ------------------------------------------------------------ upgrade all */
+
+	initUpgradeAll() {
+		let tries = 0;
+		const find = () => {
+			const anchor = document.querySelector('#view button[data-command="update"]');
+			if (!anchor) {
+				if (++tries < 60) window.setTimeout(find, 300);
+				return;
+			}
+			if (document.querySelector('.cn-upg-btn'))
+				return;
+			const btn = E('button', { 'class': 'btn cbi-button-action important cn-upg-btn', 'type': 'button' });
+			btn.appendChild(svg('upgrade'));
+			const lbl = txt('span', null, t('upgrade_all'));
+			btn.appendChild(lbl);
+			btn.addEventListener('click', () => this.upgradeAllDialog());
+			anchor.parentNode.insertBefore(btn, anchor.nextSibling);
+			anchor.parentNode.insertBefore(document.createTextNode(' '), btn);
+			this.upgBtn = btn;
+			this.upgLbl = lbl;
+			this.refreshUpgCount(false);
+
+			/* "Update lists..." refreshes the indexes - recount when its dialog closes */
+			anchor.addEventListener('click', () => {
+				let n = 0;
+				const iv = window.setInterval(() => {
+					if (++n > 40 || !document.body.classList.contains('modal-overlay-active')) {
+						window.clearInterval(iv);
+						this.refreshUpgCount(true);
+					}
+				}, 1500);
+			});
+
+			L.resolveDefault(callUpgStatus(), {}).then((st) => {
+				if (st && st.running) this.upgradeProgress();
+			});
+		};
+		find();
+	},
+
+	refreshUpgCount(force) {
+		return L.resolveDefault(callUpgrades(force), null).then((u) => {
+			const pk = ((u && u.packages) || []).filter((p) => !UPG_SKIP.test(p.name));
+			if (this.upgLbl)
+				this.upgLbl.textContent = t('upgrade_all') + (pk.length ? ' (' + num(pk.length) + ')' : '');
+			if (this.upgBtn)
+				this.upgBtn.disabled = !pk.length;
+			return u;
+		});
+	},
+
+	rtlBox(children) {
+		const d = E('div', { 'class': 'cn-modal-body', 'dir': fa() ? 'rtl' : 'ltr' });
+		children.forEach((c) => { if (c) d.appendChild(c); });
+		return d;
+	},
+
+	upgradeAllDialog() {
+		ui.showModal(t('upgrade_all'), [ E('p', { 'class': 'spinning' }, [ t('checking') ]) ]);
+
+		Promise.all([
+			this.refreshUpgCount(true),
+			L.resolveDefault(callSystemInfo(), {})
+		]).then(([ u, sys ]) => {
+			const all = (u && u.packages) || [];
+			const pk = all.filter((p) => !UPG_SKIP.test(p.name));
+			const skip = all.filter((p) => UPG_SKIP.test(p.name));
+			const avail = (((sys || {}).root || {}).avail || 0) * 1024;
+
+			if (!pk.length) {
+				ui.showModal(t('upgrade_all'), [
+					this.rtlBox([ txt('p', null, t('upg_none')) ]),
+					E('div', { 'class': 'right' }, [ E('button', { 'class': 'btn', 'click': ui.hideModal }, [ t('close') ]) ])
+				]);
+				return;
+			}
+
+			const list = E('ul', { 'class': 'cn-upg-list' });
+			pk.forEach((p) => {
+				const li = E('li');
+				li.appendChild(txt('b', null, p.name));
+				li.appendChild(txt('span', null, (p.old || '?') + '  \u2192  ' + (p.new || '?')));
+				list.appendChild(li);
+			});
+
+			const body = [ txt('p', null, t('upg_confirm').replace('%d', num(pk.length))), list ];
+			if (skip.length)
+				body.push(txt('p', 'cn-upg-note', t('upg_skipped') + ' ' + skip.map((p) => p.name).join(', ')));
+			if (avail && avail < 5 * 1048576)
+				body.push(txt('div', 'cn-upg-warn', t('upg_space').replace('%s', fmtBytes(avail))));
+			body.push(txt('div', 'cn-upg-info', t('upg_warn')));
+
+			ui.showModal(t('upgrade_all'), [
+				this.rtlBox(body),
+				E('div', { 'class': 'right' }, [
+					E('button', { 'class': 'btn', 'click': ui.hideModal }, [ t('cancel') ]),
+					' ',
+					E('button', {
+						'class': 'btn cbi-button-action important',
+						'click': () => {
+							L.resolveDefault(callUpgStart(pk.map((p) => p.name)), { error: 'rpc' }).then((r) => {
+								if (r && r.error && r.error != 'running') {
+									ui.hideModal();
+									ui.addNotification(null, E('p', {}, [ t('upg_fail').replace('%d', r.error) ]), 'error');
+									return;
+								}
+								this.upgradeProgress();
+							});
+						}
+					}, [ t('upgrade_all') + ' (' + num(pk.length) + ')' ])
+				])
+			]);
+		});
+	},
+
+	upgradeProgress() {
+		const pre = E('pre', { 'class': 'cn-upg-log' }, [ '...' ]);
+		const stat = E('p', { 'class': 'spinning cn-upg-stat' });
+		const btns = E('div', { 'class': 'right' });
+		ui.showModal(t('upgrade_all'), [ this.rtlBox([ stat, txt('div', 'cn-upg-info', t('upg_wait')) ]), pre, btns ]);
+
+		const t0 = Date.now();
+		let fails = 0;
+		const reload = () => E('button', { 'class': 'btn cbi-button-action important', 'click': () => location.reload() }, [ t('reload') ]);
+
+		const tick = () => {
+			L.resolveDefault(callUpgStatus(), null).then((st) => {
+				if (!st || st.log == null) {
+					if (++fails >= 6) {
+						stat.className = 'cn-upg-stat warn';
+						stat.textContent = t('upg_lost');
+						btns.innerHTML = '';
+						btns.appendChild(reload());
+						return;
+					}
+					window.setTimeout(tick, 2500);
+					return;
+				}
+				fails = 0;
+				pre.textContent = st.log || '...';
+				pre.scrollTop = pre.scrollHeight;
+
+				if (st.running) {
+					stat.textContent = t('upg_running').replace('%d', num(Math.round((Date.now() - t0) / 1000)));
+					window.setTimeout(tick, 1500);
+					return;
+				}
+
+				const ok = st.exit === 0;
+				stat.className = 'cn-upg-stat ' + (ok ? 'ok' : 'bad');
+				stat.textContent = ok ? t('upg_ok') : t('upg_fail').replace('%d', st.exit == null ? '?' : st.exit);
+				btns.innerHTML = '';
+				btns.appendChild(reload());
+			});
+		};
+		tick();
 	}
 });

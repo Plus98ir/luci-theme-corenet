@@ -49,7 +49,22 @@ window.CN_HELP = {
 		days: { en: 'd', fa: 'روز' },
 		hours: { en: 'h', fa: 'ساعت' },
 		minutes: { en: 'm', fa: 'دقیقه' },
-		off: { en: 'Off', fa: 'خاموش' }
+		off: { en: 'Off', fa: 'خاموش' },
+		upgrade_all: { en: 'Upgrade all', fa: 'آپگرید همه' },
+		checking: { en: 'Checking for updates…', fa: 'در حال بررسی آپدیت‌ها…' },
+		upg_none: { en: 'No updates available. Press “Update lists…” first to fetch the latest package lists.', fa: 'آپدیتی موجود نیست. اول دکمه‌ی «Update lists…» را بزنید تا لیست پکیج‌ها به‌روز شود.' },
+		upg_confirm: { en: '%d packages will be upgraded:', fa: '%d پکیج آپگرید می‌شود:' },
+		upg_skipped: { en: 'Skipped - kernel modules must match the firmware and are upgraded with a firmware upgrade:', fa: 'رد شد - ماژول‌های کرنل باید با فریم‌ور یکی باشند و با آپگرید فریم‌ور به‌روز می‌شوند:' },
+		upg_space: { en: 'Only %s of storage is free - the upgrade may fail. Free some space first.', fa: 'فقط %s فضای خالی دارید؛ ممکن است آپگرید شکست بخورد. اول کمی فضا آزاد کنید.' },
+		upg_warn: { en: 'Services such as the proxy, Wi-Fi or this web panel may restart for a moment during the upgrade.', fa: 'در حین آپگرید ممکن است سرویس‌هایی مثل پروکسی، وای‌فای یا همین پنل چند لحظه ری‌استارت شوند.' },
+		upg_wait: { en: 'Keep this window open. The upgrade runs on the router and continues even if the page disconnects.', fa: 'این پنجره را باز نگه دارید. آپگرید روی خود روتر اجرا می‌شود و اگر صفحه قطع شود هم ادامه پیدا می‌کند.' },
+		upg_running: { en: 'Upgrading… %d s', fa: 'در حال آپگرید… %d ثانیه' },
+		upg_ok: { en: 'All packages were upgraded successfully.', fa: 'همه‌ی پکیج‌ها با موفقیت آپگرید شدند.' },
+		upg_fail: { en: 'The upgrade failed (code %d). Check the log above.', fa: 'آپگرید ناموفق بود (کد %d). گزارش بالا را ببینید.' },
+		upg_lost: { en: 'Lost connection to the router - the web panel is probably restarting. The upgrade continues on the router; reload the page in a minute.', fa: 'ارتباط با روتر قطع شد؛ احتمالاً پنل در حال ری‌استارت است. آپگرید روی روتر ادامه دارد؛ یک دقیقه بعد صفحه را دوباره باز کنید.' },
+		reload: { en: 'Reload page', fa: 'بارگذاری دوباره' },
+		cancel: { en: 'Cancel', fa: 'انصراف' },
+		close: { en: 'Close', fa: 'بستن' }
 	},
 
 	groups: {

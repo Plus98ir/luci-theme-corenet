@@ -9,6 +9,14 @@ import { popen, stat, readfile, writefile, access } from 'fs';
 
 const CACHE = '/tmp/corenet-upgrades.json';
 const MAX_AGE = 1800;
+const UPG_SH = '/tmp/corenet-upgrade.sh';
+const UPG_LOG = '/tmp/corenet-upgrade.log';
+const UPG_PID = '/tmp/corenet-upgrade.pid';
+
+function upg_running() {
+	const pid = trim(readfile(UPG_PID) ?? '');
+	return length(pid) > 0 && stat('/proc/' + pid) != null;
+}
 
 function split_name(full) {
 	// name-1.2.3-r4  /  name-26.312.33065~abc  ->  [ name, version ]
@@ -72,6 +80,71 @@ const methods = {
 			const res = { count: length(pkgs), packages: pkgs, time: time() };
 			writefile(CACHE, sprintf('%J', res));
 			return res;
+		}
+	},
+
+	// Upgrade the given packages in the background (survives rpcd/uhttpd restarts).
+	// Runs /etc/corenet/post-upgrade afterwards if it is executable.
+	upgrade_start: {
+		args: { packages: [] },
+		call: function(req) {
+			if (upg_running())
+				return { error: 'running' };
+
+			const list = req.args.packages;
+			if (type(list) != 'array' || !length(list) || length(list) > 500)
+				return { error: 'invalid' };
+
+			const names = [];
+			for (let n in list) {
+				if (type(n) != 'string' || !match(n, /^[A-Za-z0-9][A-Za-z0-9._+-]*$/))
+					return { error: 'invalid' };
+				push(names, n);
+			}
+
+			let cmd;
+			if (access('/usr/bin/apk', 'x'))
+				cmd = 'apk upgrade ' + join(' ', names);
+			else if (access('/bin/opkg', 'x'))
+				cmd = 'opkg upgrade ' + join(' ', names);
+			else
+				return { error: 'nomanager' };
+
+			writefile(UPG_SH, join('\n', [
+				'#!/bin/sh',
+				'echo $$ > ' + UPG_PID,
+				'echo "# ' + cmd + '"',
+				cmd,
+				'rc=$?',
+				'rm -f ' + CACHE,
+				'if [ $rc = 0 ] && [ -x /etc/corenet/post-upgrade ]; then',
+				'	echo; echo "# /etc/corenet/post-upgrade"',
+				'	/etc/corenet/post-upgrade',
+				'fi',
+				'echo "EXIT:$rc"',
+				'rm -f ' + UPG_PID,
+				''
+			]));
+
+			writefile(UPG_LOG, '');
+			system('setsid sh ' + UPG_SH + ' >' + UPG_LOG + ' 2>&1 </dev/null &');
+			return { started: true, count: length(names) };
+		}
+	},
+
+	upgrade_status: {
+		call: function() {
+			const log = readfile(UPG_LOG);
+			if (log == null)
+				return { running: false, log: '', exit: null };
+
+			const m = match(log, /EXIT:([0-9]+)/);
+			const tail = length(log) > 20000 ? substr(log, length(log) - 20000) : log;
+			return {
+				running: upg_running(),
+				log: replace(tail, /\nEXIT:[0-9]+\n?$/, '\n'),
+				exit: m ? +m[1] : null
+			};
 		}
 	}
 };

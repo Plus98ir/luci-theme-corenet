@@ -1,14 +1,19 @@
 {
 	"luci-theme-corenet": {
-		"description": "Grant access to the CoreNet theme dashboard",
+		"description": "Grant access to the CoreNet theme dashboard and upgrade-all",
 		"read": {
 			"ubus": {
-				"luci.corenet": [ "upgrades" ],
+				"luci.corenet": [ "upgrades", "upgrade_status" ],
 				"luci": [ "getInitList", "getProcessList" ],
 				"luci-rpc": [ "getDHCPLeases", "getWirelessDevices" ],
 				"network.interface": [ "dump" ],
 				"iwinfo": [ "info", "assoclist" ],
 				"system": [ "info", "board" ]
+			}
+		},
+		"write": {
+			"ubus": {
+				"luci.corenet": [ "upgrade_start" ]
 			}
 		}
 	}
